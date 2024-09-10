@@ -51,9 +51,7 @@ def replace_missing_values(df):
     # Ensure the column names are used for indexing
     missing_categorical_columns = [col for col in missing_columns if col in categorical_features]
     missing_numerical_columns = [col for col in missing_columns if col in numerical_features]
-    # Debugging prints to verify the columns
-    print(f"Missing numerical columns: {missing_numerical_columns}")
-    print(f"Missing categorical columns: {missing_categorical_columns}")
+
     # Replace missing values in numerical columns
     if len(missing_numerical_columns) > 0:
         print(f"Replacing {len(missing_numerical_columns)} Numeric columns by median value ...")
