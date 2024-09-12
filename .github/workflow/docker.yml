@@ -1,0 +1,74 @@
+name: CI/CD for Streamlit Telecom Engagement Dashboard (Testing Only)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: telecom_db
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python 3.11
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+
+      # Step 3: Cache dependencies
+      - name: Cache Python packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      # Step 5: Set up database
+      - name: Set up database
+        run: |
+          psql -h localhost -U postgres -d telecom_db -c "CREATE USER test_user WITH PASSWORD 'test_password';"
+          psql -h localhost -U postgres -d telecom_db -c "GRANT ALL PRIVILEGES ON DATABASE telecom_db TO test_user;"
+
+      # Step 6: Run tests
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest tests/
+
+      # Step 7: Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t telecom-analytics-dashboard .
+
+      # Step 8: Run Docker container
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8501:8501 telecom-analytics-dashboard
