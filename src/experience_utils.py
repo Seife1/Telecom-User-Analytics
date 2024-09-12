@@ -77,7 +77,7 @@ def visualize_clusters_with_centroids(df, kmeans, num_clusters=3):
     # Scatter plot for each cluster with different colors
     for i in unique_clusters:
         plt.scatter(x[y_pred == i, 0], x[y_pred == i, 1], color=colors[i], alpha=0.5, label=f'Cluster {i}', marker='.')
-        plt.scatter(centers[i, 0], centers[i, 1], color=colors[i], s=250, marker='.', label=f'Centroid {i}')
+        plt.scatter(centers[i, 0], centers[i, 1], color=colors[i], s=250, marker='+', label=f'Centroid {i}')
     
     # Set plot labels and title
     plt.xlabel('Avg RTT DL (ms)')

@@ -54,8 +54,8 @@ def replace_missing_values(df):
 
     # Replace missing values in numerical columns
     if len(missing_numerical_columns) > 0:
-        print(f"Replacing {len(missing_numerical_columns)} Numeric columns by median value ...")
-        imputer = SimpleImputer(missing_values=np.nan, strategy='median')
+        print(f"Replacing {len(missing_numerical_columns)} Numeric columns by mean value ...")
+        imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
         df[missing_numerical_columns] = imputer.fit_transform(df[missing_numerical_columns])
         print("Replacing Completed!!")
         print()

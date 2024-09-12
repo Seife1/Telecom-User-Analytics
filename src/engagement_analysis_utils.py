@@ -16,8 +16,8 @@ def normalize_data(df):
     return normalized_df
 
 # Elbow method to find the optimal number of clusters
-def plot_elbow_method(df, x_features, y_features):
-    cols_for_clustering = [x_features, y_features]
+def plot_elbow_method(df):
+    cols_for_clustering = ['session_count', 'total_duration_ms', 'total_download', 'total_upload']
     wcss = []
 
     for i in range(1, 11):
@@ -34,10 +34,10 @@ def plot_elbow_method(df, x_features, y_features):
     plt.show()
 
 # Apply K-means clustering
-def apply_kmeans(df, x_features, y_features, num_clusters=3):
+def apply_kmeans(df, num_clusters=3):
     # Select the normalized columns for clustering
-    cols_for_clustering = [x_features, y_features]
-    
+    cols_for_clustering = ['session_count', 'total_duration_ms', 'total_download', 'total_upload']
+
     # Apply KMeans clustering
     kmeans = KMeans(n_clusters=num_clusters, n_init='auto',init='k-means++', random_state=42)
     df['engagement_cluster'] = kmeans.fit_predict(df[cols_for_clustering].values)
@@ -45,31 +45,25 @@ def apply_kmeans(df, x_features, y_features, num_clusters=3):
     return df, kmeans
 
 # Visualize the clusters based on session count and total download data
-def visualize_clusters_with_centroids(df, kmeans, x_features, y_features):
+def visualize_clusters_with_centroids(df, kmeans, x_features, y_features, num_clusters):
     # Extract clustering results
     x = df[[x_features, y_features]].values  # Two dimensions to visualize
     y_pred = df['engagement_cluster']        # Cluster predictions from KMeans
     centers = kmeans.cluster_centers_        # Cluster centroids
 
-    # Scatter plots for each cluster and its centroid
-    plt.scatter(x[y_pred == 0, 0], x[y_pred == 0, 1], color='orange', alpha=0.5, label='Cluster 0', marker='.')
-    plt.scatter(centers[0, 0], centers[0, 1], color='orange', s=250, marker='*', label='Centroid 0')
+    # Get unique cluster labels to determine the number of clusters dynamically
+    unique_clusters = sorted(set(y_pred))
 
-    plt.scatter(x[y_pred == 1, 0], x[y_pred == 1, 1], color='purple', alpha=0.5, label='Cluster 1', marker='.')
-    plt.scatter(centers[1, 0], centers[1, 1], color='purple', s=250, marker='*', label='Centroid 1')
+    # Define color map for 10 clusters
+    colors = sns.color_palette("Set2", num_clusters)
 
-    if len(centers) > 2:
-        plt.scatter(x[y_pred == 2, 0], x[y_pred == 2, 1], color='red', alpha=0.5, label='Cluster 2', marker='.')
-        plt.scatter(centers[2, 0], centers[2, 1], color='red', s=250, marker='*', label='Centroid 2')
+    if num_clusters > len(colors):
+        raise ValueError(f"Not enough colors defined for the number of clusters ({num_clusters}).")
 
-    # If you have more clusters, repeat for them
-    if len(centers) > 3:
-        plt.scatter(x[y_pred == 3, 0], x[y_pred == 3, 1], color='blue', alpha=0.5, label='Cluster 3', marker='.')
-        plt.scatter(centers[3, 0], centers[3, 1], color='blue', s=250, marker='*', label='Centroid 3')
-
-    if len(centers) > 4:
-        plt.scatter(x[y_pred == 4, 0], x[y_pred == 4, 1], color='green', alpha=0.5, label='Cluster 4', marker='.')
-        plt.scatter(centers[4, 0], centers[4, 1], color='green', s=250, marker='*', label='Centroid 4')
+    # Scatter plot for each cluster with different colors
+    for i in unique_clusters:
+        plt.scatter(x[y_pred == i, 0], x[y_pred == i, 1], color=colors[i], alpha=0.5, label=f'Cluster {i}', marker='.')
+        plt.scatter(centers[i, 0], centers[i, 1], color=colors[i], s=250, marker='+', label=f'Centroid {i}')
 
     # Set labels and title
     plt.xlabel(x_features.replace('_', ' ').title())
